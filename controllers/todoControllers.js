@@ -2,7 +2,15 @@ const todoModel = require("../schemas/todo.model.js");
 
 const getTodos = async (req, res) => {
   try {
-    const todos = await todoModel.find({ userId: req.user.userId });
+    const { page, limit } = req.params;
+    // const todos = await todoModel.find({ userId: req.user.userId });
+    const todos = await todoModel.paginate(
+      { userId: req.user.userId },
+      {
+        page: (page && isNaN(page)) == false ? parseInt(page) : 1,
+        limit: (limit && isNaN(limit)) == false ? parseInt(limit) : 4,
+      }
+    );
 
     res.status(200).json({
       message: "Todos fetched successfully",
@@ -19,7 +27,9 @@ const getTodoById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const todo = await todoModel.findOne({ _id: id, userId: req.user.userId });
+    const todo = await todoModel
+      .findOne({ _id: id, userId: req.user.userId })
+      .populate("comment.commenterId", "userName commenterText");
 
     if (!todo) {
       res.status(404).json({
@@ -67,7 +77,7 @@ const updateTodoById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { theme, ...fieldsToUpdate } = req.body;
+    const { theme, comment, ...fieldsToUpdate } = req.body;
 
     const UpdatedTodo = await todoModel.findOneAndUpdate(
       { _id: id, userId: req.user.userId },
@@ -123,14 +133,44 @@ const deleteTodoById = async (req, res) => {
   }
 };
 
+const addComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { commenterText } = req.body;
+
+    const updatedTodo = await todoModel
+      .findOneAndUpdate(
+        { _id: id },
+        {
+          $push: {
+            comment: {
+              commenterId: req.user.userId,
+              commenterText,
+            },
+          },
+        },
+        { new: true }
+      )
+      .populate("comment.commenterId", "userName email");
+
+    if (!updatedTodo) {
+      return res.status(404).json({ message: "Todo not found" });
+    }
+
+    res.status(201).json({
+      message: "Comment added successfully",
+      updatedTodo,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getTodos,
   createTodo,
   getTodoById,
   updateTodoById,
   deleteTodoById,
+  addComment,
 };
-
-// "todoTitle": "Code today",
-// "description": "I want to do and sleep again",
-// "theme": "#343547",

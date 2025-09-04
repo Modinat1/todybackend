@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const paginate = require("mongoose-paginate-v2");
 
 const todoSchema = new mongoose.Schema(
   {
@@ -19,9 +20,11 @@ const todoSchema = new mongoose.Schema(
     },
     theme: {
       type: String,
+      enum: ["blue", "green", "black", "red"],
       required: [true, "Theme is required"],
       trim: true,
     },
+
     priority: {
       type: String,
       enum: ["low", "medium", "high"],
@@ -59,6 +62,8 @@ const todoSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+todoSchema.plugin(paginate);
 
 const Todo = mongoose.model("todos", todoSchema);
 

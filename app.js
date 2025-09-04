@@ -3,6 +3,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const authRouter = require("./routers/authRouter");
 const todoRouter = require("./routers/todoRouter");
+const commentRouter = require("./routers/commentRouter");
 
 require("dotenv").config();
 
@@ -26,8 +27,14 @@ app.get("/ping", (req, res) => {
 
 app.use("/auth", authRouter);
 app.use("/todo", todoRouter);
+app.use("/comment", commentRouter);
 
-app.listen(process.env.PORT, () => {
+// app.listen(process.env.PORT, () => {
+//   console.log(`Server has started on port ${process.env.PORT}`);
+//   connectToDatabase();
+// });
+
+app.listen(process.env.PORT, "0.0.0.0", () => {
   console.log(`Server has started on port ${process.env.PORT}`);
   connectToDatabase();
 });

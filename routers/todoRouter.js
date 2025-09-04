@@ -7,7 +7,6 @@ const verifyToken = require("../middlewares/verifyToken.js");
 
 router.get("/", verifyToken, todoControllers.getTodos);
 router.post("/", verifyToken, todoControllers.createTodo);
-router.post("/:id/comment", verifyToken, todoControllers.addComment);
 router.get("/:id", verifyToken, todoControllers.getTodoById);
 router.patch("/:id", verifyToken, todoControllers.updateTodoById);
 router.delete("/:id", verifyToken, todoControllers.deleteTodoById);

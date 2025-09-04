@@ -14,8 +14,8 @@ const multer = require("multer");
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
 // export the actual middleware function
-module.exports = upload.array("attachments");
+module.exports = upload.array("attachments", 5);

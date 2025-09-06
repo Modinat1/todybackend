@@ -94,6 +94,8 @@ const createComment = async (req, res) => {
       comment,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(400).json({
       message: "Error creating comment",
       error: error.message || error,

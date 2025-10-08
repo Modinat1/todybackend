@@ -18,23 +18,23 @@ const getTodos = async (req, res) => {
       }
     );
 
-    // res.status(200).json({
-    //   message: "Todos fetched successfully",
-    //   todos: todos.docs,
-    //   pagination: {
-    //     totalDocs: todos.totalDocs,
-    //     limit: todos.limit,
-    //     page: todos.page,
-    //     totalPages: todos.totalPages,
-    //     hasNextPage: todos.hasNextPage,
-    //     hasPrevPage: todos.hasPrevPage,
-    //   },
-    // });
-
     res.status(200).json({
       message: "Todos fetched successfully",
-      todos,
+      todos: todos.docs,
+      pagination: {
+        totalDocs: todos.totalDocs,
+        limit: todos.limit,
+        page: todos.page,
+        totalPages: todos.totalPages,
+        hasNextPage: todos.hasNextPage,
+        hasPrevPage: todos.hasPrevPage,
+      },
     });
+
+    // res.status(200).json({
+    //   message: "Todos fetched successfully",
+    //   todos,
+    // });
   } catch (error) {
     res
       .status(500)

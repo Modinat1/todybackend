@@ -35,21 +35,10 @@ const todoSchema = new mongoose.Schema(
       enum: ["pending", "completed", "overdue"],
       default: "pending",
     },
-    comment: [
+    comments: [
       {
-        commenterId: {
-          type: mongoose.Types.ObjectId,
-          ref: "users",
-        },
-        commenterText: {
-          type: String,
-          required: [true, "comment is required"],
-          trim: true,
-        },
-        commentedAt: {
-          type: Date,
-          default: Date.now,
-        },
+        type: mongoose.Types.ObjectId,
+        ref: "comments",
       },
     ],
     documents: [String],

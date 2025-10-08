@@ -6,6 +6,7 @@ const verifyToken = require("../middlewares/verifyToken.js");
 const upload = require("../middlewares/uploadImages.js");
 
 router.post("/", upload, verifyToken, commentController.createComment);
+
 router.get("/:id/comment", verifyToken, commentController.getCommentById);
 router.patch("/:id", verifyToken, commentController.updateCommentById);
 router.delete("/:id", verifyToken, commentController.deleteCommentById);

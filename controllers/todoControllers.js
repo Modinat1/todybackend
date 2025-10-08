@@ -3,32 +3,38 @@ const todoModel = require("../schemas/todo.model.js");
 const getTodos = async (req, res) => {
   try {
     const { page, limit } = req.params;
-    // const todos = await todoModel.find({ userId: req.user.userId });
+
     const todos = await todoModel.paginate(
       { userId: req.user.userId },
       {
         page: (page && isNaN(page)) == false ? parseInt(page) : 1,
         limit: (limit && isNaN(limit)) == false ? parseInt(limit) : 4,
+        populate: [
+          {
+            path: "comments",
+            select: "commenterId commenterText attachments createdAt",
+          },
+        ],
       }
     );
 
-    res.status(200).json({
-      message: "Todos fetched successfully",
-      todos: todos.docs,
-      pagination: {
-        totalDocs: todos.totalDocs,
-        limit: todos.limit,
-        page: todos.page,
-        totalPages: todos.totalPages,
-        hasNextPage: todos.hasNextPage,
-        hasPrevPage: todos.hasPrevPage,
-      },
-    });
-
     // res.status(200).json({
     //   message: "Todos fetched successfully",
-    //   todos,
+    //   todos: todos.docs,
+    //   pagination: {
+    //     totalDocs: todos.totalDocs,
+    //     limit: todos.limit,
+    //     page: todos.page,
+    //     totalPages: todos.totalPages,
+    //     hasNextPage: todos.hasNextPage,
+    //     hasPrevPage: todos.hasPrevPage,
+    //   },
     // });
+
+    res.status(200).json({
+      message: "Todos fetched successfully",
+      todos,
+    });
   } catch (error) {
     res
       .status(500)
@@ -42,7 +48,10 @@ const getTodoById = async (req, res) => {
 
     const todo = await todoModel
       .findOne({ _id: id, userId: req.user.userId })
-      .populate("comment.commenterId", "userName commenterText");
+      .populate({
+        path: "comments",
+        populate: { path: "commenterId", select: "userName email" },
+      });
 
     if (!todo) {
       res.status(404).json({

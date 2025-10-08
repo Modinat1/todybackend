@@ -1,4 +1,5 @@
 const commentModel = require("../schemas/comment.model.js");
+const todoModel = require("../schemas/todo.model.js");
 const uploadFile = require("../utils/fileUpload.js");
 
 const getComments = async (req, res) => {
@@ -14,15 +15,16 @@ const getComments = async (req, res) => {
         populate: [
           {
             path: "commenterId",
-            select: "userName commenterText",
+            select: "userName",
           },
         ],
+        lean: false,
       }
     );
 
     res.status(200).json({
       message: "Comments fetched successfully",
-      comments,
+      comments: comments.docs,
     });
   } catch (error) {
     res
@@ -87,6 +89,10 @@ const createComment = async (req, res) => {
       attachments: uploadedAttachments,
       commenterId: req.user.userId,
       todoId,
+    });
+
+    await todoModel.findByIdAndUpdate(todoId, {
+      $push: { comments: comment._id },
     });
 
     res.status(201).json({

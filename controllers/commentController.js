@@ -25,6 +25,7 @@ const getComments = async (req, res) => {
     const comments = await commentModel
       .find({ todoId })
       .populate("commenterId", "userName")
+      .sort({ createdAt: -1 })
       .exec();
 
     res.status(200).json({

@@ -10,6 +10,7 @@ router.post("/", verifyToken, todoControllers.createTodo);
 router.get("/:id", verifyToken, todoControllers.getTodoById);
 router.patch("/:id", verifyToken, todoControllers.updateTodoById);
 router.delete("/:id", verifyToken, todoControllers.deleteTodoById);
+router.patch("/:id/status", verifyToken, todoControllers.updateTodoStatus);
 // router.post("/:id/upload-image", verifyToken, uploadImages, todoControllers.uploadImages);
 
 module.exports = router;

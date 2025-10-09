@@ -1,30 +1,35 @@
-const commentModel = require("../schemas/comment.model.js");
+require("../schemas/user.model.js");
 const todoModel = require("../schemas/todo.model.js");
+const commentModel = require("../schemas/comment.model.js");
 const uploadFile = require("../utils/fileUpload.js");
 
 const getComments = async (req, res) => {
   try {
     const { todoId, page, limit } = req.params;
 
-    const comments = await commentModel.paginate(
-      { todoId },
-      {
-        page: (page && isNaN(page)) == false ? parseInt(page) : 1,
-        limit: (limit && isNaN(limit)) == false ? parseInt(limit) : 4,
-        limit: limit ? limit : 4,
-        populate: [
-          {
-            path: "commenterId",
-            select: "userName",
-          },
-        ],
-        lean: false,
-      }
-    );
+    // const comments = await commentModel.paginate(
+    //   { todoId },
+    //   {
+    //     page: (page && isNaN(page)) == false ? parseInt(page) : 1,
+    //     limit: (limit && isNaN(limit)) == false ? parseInt(limit) : 4,
+    //     populate: [
+    //       {
+    //         path: "commenterId",
+    //         select: "userName",
+    //       },
+    //     ],
+    //     lean: false,
+    //   }
+    // );
+
+    const comments = await commentModel
+      .find({ todoId })
+      .populate("commenterId", "userName")
+      .exec();
 
     res.status(200).json({
       message: "Comments fetched successfully",
-      comments: comments.docs,
+      comments: comments,
     });
   } catch (error) {
     res

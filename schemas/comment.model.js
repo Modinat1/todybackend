@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const paginate = require("mongoose-paginate-v2");
 
+console.log(mongoose.models);
+
 const commentSchema = new mongoose.Schema(
   {
     todoId: {

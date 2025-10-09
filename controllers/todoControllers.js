@@ -1,10 +1,17 @@
+const mongoose = require("mongoose");
 const todoModel = require("../schemas/todo.model.js");
 
 const getTodos = async (req, res) => {
   try {
-    const { page, limit } = req.params;
+    const { page, limit, status } = req.query;
+
+    const filter = { userId: req.user.userId };
+    if (status && ["pending", "completed", "overdue"].includes(status)) {
+      filter.status = status;
+    }
 
     const todos = await todoModel.paginate(
+      filter,
       { userId: req.user.userId },
       {
         page: (page && isNaN(page)) == false ? parseInt(page) : 1,
@@ -15,6 +22,7 @@ const getTodos = async (req, res) => {
             select: "commenterId commenterText attachments createdAt",
           },
         ],
+        sort: { createdAt: -1 },
       }
     );
 
@@ -157,10 +165,46 @@ const deleteTodoById = async (req, res) => {
   }
 };
 
+const updateTodoStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid todo ID format" });
+    }
+
+    if (!["pending", "completed", "overdue"].includes(status)) {
+      return res.status(400).json({ message: "invalid status value" });
+    }
+
+    const updatedTodo = await todoModel.findOneAndUpdate(
+      {
+        _id: id,
+        userId: req.user.userId,
+      },
+      { status },
+      { new: true, runValidators: true }
+    );
+    if (!updatedTodo) {
+      return res.status(404).json({ message: "Todo not found!" });
+    }
+    res.status(200).json({
+      message: "Todo status updated successfully",
+      updatedTodo: updatedTodo,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating todo status", error: error.message });
+  }
+};
+
 module.exports = {
   getTodos,
   createTodo,
   getTodoById,
   updateTodoById,
   deleteTodoById,
+  updateTodoStatus,
 };

@@ -30,6 +30,8 @@ const todoSchema = new mongoose.Schema(
       enum: ["low", "medium", "high"],
       default: "medium",
     },
+    dueDate: { type: Date, required: true },
+    notifiedBeforeDue: { type: Boolean, default: false }, // to prevent duplicate notifications
     status: {
       type: String,
       enum: ["pending", "completed", "overdue"],

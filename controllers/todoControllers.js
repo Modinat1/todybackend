@@ -81,13 +81,14 @@ const getTodoById = async (req, res) => {
 
 const createTodo = async (req, res) => {
   try {
-    const { todoTitle, description, theme, status } = req.body;
+    const { todoTitle, description, theme, status, dueDate } = req.body;
 
     const todo = await todoModel.create({
       todoTitle,
       description,
       theme,
       status,
+      dueDate,
       userId: req.user.userId,
     });
 

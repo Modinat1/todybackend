@@ -1,6 +1,6 @@
-import fetch from "node-fetch";
+const fetch = require("node-fetch");
 
-export async function sendPushNotification({ to, title, body, data }) {
+const sendPushNotification = async ({ to, title, body, data }) => {
   await fetch("https://exp.host/--/api/v2/push/send", {
     method: "POST",
     headers: {
@@ -16,4 +16,6 @@ export async function sendPushNotification({ to, title, body, data }) {
       data,
     }),
   });
-}
+};
+
+module.exports = sendPushNotification;

@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const authRouter = require("./routers/authRouter");
 const todoRouter = require("./routers/todoRouter");
 const commentRouter = require("./routers/commentRouter");
+const notifyTodo = require("./cronjobs/notify-todo.js");
 
 require("dotenv").config();
 
@@ -16,6 +17,11 @@ const connectToDatabase = async () => {
   }
 };
 const app = express();
+
+if (process.env.NODE_ENV !== "test" && !global.__todoCronStarted) {
+  global.__todoCronStarted = true;
+  notifyTodo();
+}
 
 app.use(cors({ origin: "*" }));
 app.use(express.urlencoded({ extended: true }));

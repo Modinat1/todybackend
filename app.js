@@ -5,6 +5,7 @@ const authRouter = require("./routers/authRouter");
 const todoRouter = require("./routers/todoRouter");
 const commentRouter = require("./routers/commentRouter");
 const notifyTodo = require("./cronjobs/notify-todo.js");
+const userRouter = require("./routers/userRouter.js");
 
 require("dotenv").config();
 
@@ -34,6 +35,7 @@ app.get("/ping", (req, res) => {
 app.use("/auth", authRouter);
 app.use("/todo", todoRouter);
 app.use("/comment", commentRouter);
+app.use("/user", userRouter);
 
 // app.listen(process.env.PORT, () => {
 //   console.log(`Server has started on port ${process.env.PORT}`);

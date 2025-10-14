@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       trim: true,
     },
+    pushToken: { type: String },
     password: {
       type: String,
       required: [true, "Password is required"],

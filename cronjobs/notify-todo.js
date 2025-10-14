@@ -45,7 +45,7 @@ function notifyTodo() {
     }
   });
 
-  console.log("✅ Cron job for todo reminders started");
+  // console.log("✅ Cron job for todo reminders started");
 }
 
 module.exports = notifyTodo;

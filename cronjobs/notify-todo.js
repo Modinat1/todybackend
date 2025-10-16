@@ -7,7 +7,7 @@ function notifyTodo() {
   cron.schedule("*/1 * * * *", async () => {
     // cron.schedule("*/10 * * * *", async () => {
     const now = new Date();
-    const oneHourFromNow = new Date(now.getTime() + 5 * 60 * 1000); // 1 hour ahead
+    const fiveMinFromNow = new Date(now.getTime() + 10 * 60 * 1000); // 5 min ahead
     // const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour ahead
 
     try {
@@ -15,7 +15,7 @@ function notifyTodo() {
       const upcomingTodos = await todoModel
         .find({
           status: "pending",
-          dueAt: { $lte: oneHourFromNow, $gt: now },
+          dueAt: { $lte: fiveMinFromNow, $gt: now },
           notifiedBeforeDue: false,
         })
         .populate("userId", "userName pushToken");

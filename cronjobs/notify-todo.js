@@ -12,10 +12,19 @@ function notifyTodo() {
 
     try {
       // Find todos due within the next hour and not yet notified
+      // const upcomingTodos = await todoModel
+      //   .find({
+      //     status: "pending",
+      //     dueAt: { $lte: fiveMinFromNow, $gt: now },
+      //     notifiedBeforeDue: false,
+      //   })
       const upcomingTodos = await todoModel
         .find({
           status: "pending",
-          dueAt: { $lte: fiveMinFromNow, $gt: now },
+          dueAt: {
+            $lte: new Date(fiveMinFromNow.toISOString()),
+            $gt: new Date(now.toISOString()),
+          },
           notifiedBeforeDue: false,
         })
         .populate("userId", "userName pushToken");
@@ -41,6 +50,13 @@ function notifyTodo() {
 
       console.log(
         `${upcomingTodos.length} reminder(s) sent at ${now.toISOString()}`
+      );
+      console.log("Now (UTC):", now.toISOString());
+      console.log(
+        "Checking todos due between",
+        now.toISOString(),
+        "and",
+        fiveMinFromNow.toISOString()
       );
     } catch (error) {
       console.error("Error running reminder job:", error);

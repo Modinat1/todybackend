@@ -1,5 +1,3 @@
-const fetch = require("node-fetch");
-
 const sendPushNotification = async ({ to, title, body, data }) => {
   await fetch("https://exp.host/--/api/v2/push/send", {
     method: "POST",

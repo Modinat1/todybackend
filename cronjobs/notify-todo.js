@@ -3,42 +3,43 @@ const todoModel = require("../schemas/todo.model.js");
 const sendPushNotification = require("../utils/sendNotification.js");
 
 function notifyTodo() {
-  // ⏰ Run every 10 minutes
+  // ⏰ Run every minute (change to */10 for every 10 minutes in production)
   cron.schedule("*/1 * * * *", async () => {
-    // cron.schedule("*/10 * * * *", async () => {
     const now = new Date();
-    const fiveMinFromNow = new Date(now.getTime() + 10 * 60 * 1000); // 5 min ahead
-    // const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour ahead
+    const fiveMinFromNow = new Date(now.getTime() + 5 * 60 * 1000);
 
     try {
-      // Find todos due within the next hour and not yet notified
-      // const upcomingTodos = await todoModel
-      //   .find({
-      //     status: "pending",
-      //     dueAt: { $lte: fiveMinFromNow, $gt: now },
-      //     notifiedBeforeDue: false,
-      //   })
+      // Find todos due within the next 5 minutes and not yet notified
       const upcomingTodos = await todoModel
         .find({
           status: "pending",
           dueAt: {
-            $lte: new Date(fiveMinFromNow.toISOString()),
-            $gt: new Date(now.toISOString()),
+            $lte: fiveMinFromNow,
+            $gt: now,
           },
           notifiedBeforeDue: false,
         })
         .populate("userId", "userName pushToken");
 
+      console.log(`[${new Date().toISOString()}] Checking for reminders...`);
+      console.log(`Found ${upcomingTodos.length} upcoming todo(s)`);
+
       for (const todo of upcomingTodos) {
         const user = todo.userId;
-        if (!user?.pushToken) continue;
+
+        if (!user?.pushToken) {
+          console.log(`Skipping todo ${todo._id}: No push token`);
+          continue;
+        }
+
+        console.log(`Sending notification for: "${todo.todoTitle}"`);
 
         // Send push notification
         await sendPushNotification({
           to: user.pushToken,
           title: "⏰ Todo Reminder",
-          body: `Your todo "${todo.title}" is almost due!`,
-          data: { todoId: todo._id },
+          body: `Your todo "${todo.todoTitle}" is due soon!`,
+          data: { todoId: todo._id.toString() },
         });
 
         // Mark as notified
@@ -46,24 +47,15 @@ function notifyTodo() {
           { _id: todo._id },
           { $set: { notifiedBeforeDue: true } }
         );
-      }
 
-      console.log(
-        `${upcomingTodos.length} reminder(s) sent at ${now.toISOString()}`
-      );
-      console.log("Now (UTC):", now.toISOString());
-      console.log(
-        "Checking todos due between",
-        now.toISOString(),
-        "and",
-        fiveMinFromNow.toISOString()
-      );
+        console.log(`✅ Notification sent successfully`);
+      }
     } catch (error) {
-      console.error("Error running reminder job:", error);
+      console.error("❌ Error running reminder job:", error);
     }
   });
 
-  // console.log("✅ Cron job for todo reminders started");
+  console.log("✅ Cron job for todo reminders started");
 }
 
 module.exports = notifyTodo;

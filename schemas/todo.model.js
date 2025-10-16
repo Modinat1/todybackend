@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 const paginate = require("mongoose-paginate-v2");
+const moment = require("moment-timezone");
+
+const NIGERIA_TZ = "Africa/Lagos";
 
 const todoSchema = new mongoose.Schema(
   {
@@ -24,7 +27,6 @@ const todoSchema = new mongoose.Schema(
       required: [true, "Theme is required"],
       trim: true,
     },
-
     priority: {
       type: String,
       enum: ["low", "medium", "high"],
@@ -35,12 +37,12 @@ const todoSchema = new mongoose.Schema(
       required: true,
     },
     dueTime: {
-      type: String,
+      type: String, // Format: "HH:MM" in Nigerian time
     },
     dueAt: {
-      type: Date, // Full timestamp combining date and time
+      type: Date, // Stored in UTC, represents Nigerian time
     },
-    notifiedBeforeDue: { type: Boolean, default: false }, // to prevent duplicate notifications
+    notifiedBeforeDue: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ["pending", "completed", "overdue"],
@@ -63,17 +65,19 @@ const todoSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// ✅ Helper to convert Nigerian time to UTC Date object
+function nigerianToUTC(dueDate, dueTime) {
+  const dateStr = moment(dueDate).format("YYYY-MM-DD");
+  const dateTimeStr = `${dateStr} ${dueTime}`;
+
+  // Parse as Nigerian time and convert to UTC
+  return moment.tz(dateTimeStr, "YYYY-MM-DD HH:mm", NIGERIA_TZ).toDate();
+}
+
+// ✅ Automatically set `dueAt` when creating a new todo
 todoSchema.pre("save", function (next) {
   if (this.dueDate && this.dueTime) {
-    const [hours, minutes] = this.dueTime.split(":").map(Number);
-    const fullDate = new Date(this.dueDate);
-
-    fullDate.setHours(hours);
-    fullDate.setMinutes(minutes);
-    fullDate.setSeconds(0);
-    fullDate.setMilliseconds(0);
-
-    this.dueAt = fullDate;
+    this.dueAt = nigerianToUTC(this.dueDate, this.dueTime);
   }
   next();
 });
@@ -82,20 +86,12 @@ todoSchema.pre("save", function (next) {
 todoSchema.pre("findOneAndUpdate", function (next) {
   const update = this.getUpdate();
 
-  // If either dueDate or dueTime is being updated, recompute dueAt
   if (update.dueDate || update.dueTime) {
     const dueDate = update.dueDate ? new Date(update.dueDate) : null;
     const dueTime = update.dueTime || null;
 
     if (dueDate && dueTime) {
-      const [hours, minutes] = dueTime.split(":").map(Number);
-      dueDate.setHours(hours);
-      dueDate.setMinutes(minutes);
-      dueDate.setSeconds(0);
-      dueDate.setMilliseconds(0);
-
-      // Ensure dueAt gets added to the update
-      this.setUpdate({ ...update, dueAt: dueDate });
+      this.setUpdate({ ...update, dueAt: nigerianToUTC(dueDate, dueTime) });
     }
   }
   next();

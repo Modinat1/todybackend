@@ -2,17 +2,24 @@ const userModel = require("../schemas/user.model.js");
 
 const savePushToken = async (req, res) => {
   try {
-    const { pushToken } = req.body;
+    console.log("📥 Received push token request");
+    console.log("Body:", req.body);
+    console.log("Headers:", req.headers);
 
-    if (!pushToken) {
-      return res.status(400).json({ message: "pushToken required" });
+    const { pushToken } = req.body;
+    const userId = req.user.userId;
+
+    if (!userId || !pushToken) {
+      return res
+        .status(400)
+        .json({
+          message: "pushToken required",
+          received: { userId, pushToken },
+        });
     }
 
-    await userModel.findByIdAndUpdate(
-      req.user.userId,
-      { pushToken },
-      { new: true }
-    );
+    await userModel.findByIdAndUpdate(userId, { pushToken }, { new: true });
+
     res.status(200).json({ message: "Push token saved successfully" });
   } catch (error) {
     console.error("Error saving push token:", error);

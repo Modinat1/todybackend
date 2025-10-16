@@ -4,9 +4,11 @@ const sendPushNotification = require("../utils/sendNotification.js");
 
 function notifyTodo() {
   // ⏰ Run every 10 minutes
-  cron.schedule("*/10 * * * *", async () => {
+  cron.schedule("*/1 * * * *", async () => {
+    // cron.schedule("*/10 * * * *", async () => {
     const now = new Date();
-    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour ahead
+    const oneHourFromNow = new Date(now.getTime() + 5 * 60 * 1000); // 1 hour ahead
+    // const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour ahead
 
     try {
       // Find todos due within the next hour and not yet notified

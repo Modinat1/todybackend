@@ -5,6 +5,7 @@ const authRouter = require("./routers/authRouter");
 const todoRouter = require("./routers/todoRouter");
 const commentRouter = require("./routers/commentRouter");
 const notifyTodo = require("./cronjobs/notify-todo.js");
+const markOverDueTodos = require("./cronjobs/mark-overdue-todo.js");
 const userRouter = require("./routers/userRouter.js");
 
 require("dotenv").config();
@@ -19,9 +20,16 @@ const connectToDatabase = async () => {
 };
 const app = express();
 
-if (process.env.NODE_ENV !== "test" && !global.__todoCronStarted) {
-  global.__todoCronStarted = true;
-  notifyTodo();
+if (process.env.NODE_ENV !== "test") {
+  if (!global.__todoCronStarted) {
+    global.__todoCronStarted = true;
+    notifyTodo();
+  }
+
+  if (!global.__markOverdueCronStarted) {
+    global.__markOverdueCronStarted = true;
+    markOverDueTodos();
+  }
 }
 
 app.use(cors({ origin: "*" }));

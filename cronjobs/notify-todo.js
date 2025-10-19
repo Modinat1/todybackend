@@ -6,7 +6,7 @@ function notifyTodo() {
   // ⏰ Run every minute (change to */10 for every 10 minutes in production)
   cron.schedule("*/1 * * * *", async () => {
     const now = new Date();
-    const fiveMinFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+    const fiveMinFromNow = new Date(now.getTime() + 1 * 60 * 1000);
 
     try {
       // Find todos due within the next 5 minutes and not yet notified

@@ -37,7 +37,7 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     const user = await userModel.findOne({ email });
 
-    console.log("user:::", user);
+    // console.log("user:::", user);
 
     if (!user) {
       res.status(404).send({

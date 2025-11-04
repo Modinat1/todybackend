@@ -1,52 +1,93 @@
 const mongoose = require("mongoose");
 const todoModel = require("../schemas/todo.model.js");
 
+// const getTodos = async (req, res) => {
+//   try {
+//     const { page, limit, status } = req.query;
+
+//     const filter = { userId: req.user.userId };
+//     if (status && ["pending", "completed", "overdue"].includes(status)) {
+//       filter.status = status;
+//     }
+
+//     const todos = await todoModel.paginate(
+//       filter,
+//       { userId: req.user.userId },
+//       {
+//         page: (page && isNaN(page)) == false ? parseInt(page) : 1,
+//         limit: (limit && isNaN(limit)) == false ? parseInt(limit) : 4,
+//         populate: [
+//           {
+//             path: "comments",
+//             select: "commenterId commenterText attachments createdAt",
+//           },
+//         ],
+//         sort: { createdAt: -1 },
+//       }
+//     );
+
+//     res.status(200).json({
+//       message: "Todos fetched successfully",
+//       todos: todos.docs,
+//       pagination: {
+//         totalDocs: todos.totalDocs,
+//         limit: todos.limit,
+//         page: todos.page,
+//         totalPages: todos.totalPages,
+//         hasNextPage: todos.hasNextPage,
+//         hasPrevPage: todos.hasPrevPage,
+//       },
+//     });
+
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ message: "Error fetching todos", error: error.message });
+//   }
+// };
+
 const getTodos = async (req, res) => {
   try {
-    const { page, limit, status } = req.query;
+    const { cursor, limit = 10, status } = req.query;
 
     const filter = { userId: req.user.userId };
+
     if (status && ["pending", "completed", "overdue"].includes(status)) {
       filter.status = status;
     }
 
-    const todos = await todoModel.paginate(
-      filter,
-      { userId: req.user.userId },
-      {
-        page: (page && isNaN(page)) == false ? parseInt(page) : 1,
-        limit: (limit && isNaN(limit)) == false ? parseInt(limit) : 4,
-        populate: [
-          {
-            path: "comments",
-            select: "commenterId commenterText attachments createdAt",
-          },
-        ],
-        sort: { createdAt: -1 },
-      }
-    );
+    // If a cursor is provided, fetch todos created before that cursor
+    if (cursor) {
+      filter.createdAt = { $lt: new Date(cursor) };
+    }
+
+    const todos = await todoModel
+      .find(filter)
+      .populate({
+        path: "comments",
+        select: "commenterId commenterText attachments createdAt",
+      })
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit) + 1); // fetch one extra to detect next page
+
+    // Determine the next cursor
+    const hasNextPage = todos.length > limit;
+    const nextCursor = hasNextPage ? todos[limit - 1].createdAt : null;
+
+    // Trim to the requested limit
+    const results = hasNextPage ? todos.slice(0, limit) : todos;
 
     res.status(200).json({
       message: "Todos fetched successfully",
-      todos: todos.docs,
-      pagination: {
-        totalDocs: todos.totalDocs,
-        limit: todos.limit,
-        page: todos.page,
-        totalPages: todos.totalPages,
-        hasNextPage: todos.hasNextPage,
-        hasPrevPage: todos.hasPrevPage,
-      },
+      todos: results,
+      nextCursor,
+      hasNextPage,
     });
-
-    // res.status(200).json({
-    //   message: "Todos fetched successfully",
-    //   todos,
-    // });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching todos", error: error.message });
+    res.status(500).json({
+      message: "Error fetching todos",
+      error: error.message,
+    });
   }
 };
 

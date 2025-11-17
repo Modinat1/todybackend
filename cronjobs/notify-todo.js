@@ -3,21 +3,20 @@ const todoModel = require("../schemas/todo.model.js");
 const sendPushNotification = require("../utils/sendNotification.js");
 
 function notifyTodo() {
-  // ⏰ Run every minute (change to */10 for every 10 minutes in production)
   cron.schedule("*/1 * * * *", async () => {
     const now = new Date();
-    const fiveMinFromNow = new Date(now.getTime() + 1 * 60 * 1000);
+    const thirtySecBefore = new Date(now.getTime() - 30 * 1000);
+    const thirtySecAfter = new Date(now.getTime() + 30 * 1000);
 
     try {
-      // Find todos due within the next 5 minutes and not yet notified
       const upcomingTodos = await todoModel
         .find({
           status: "pending",
-          dueAt: {
-            $lte: fiveMinFromNow,
-            $gt: now,
-          },
           notifiedBeforeDue: false,
+          dueAt: {
+            $gte: thirtySecBefore,
+            $lte: thirtySecAfter,
+          },
         })
         .populate("userId", "userName pushToken");
 
@@ -27,14 +26,8 @@ function notifyTodo() {
       for (const todo of upcomingTodos) {
         const user = todo.userId;
 
-        if (!user?.pushToken) {
-          console.log(`Skipping todo ${todo._id}: No push token`);
-          continue;
-        }
+        if (!user?.pushToken) continue;
 
-        console.log(`Sending notification for: "${todo.todoTitle}"`);
-
-        // Send push notification
         await sendPushNotification({
           to: user.pushToken,
           title: "⏰ Todo Reminder",
@@ -42,20 +35,17 @@ function notifyTodo() {
           data: { todoId: todo._id.toString() },
         });
 
-        // Mark as notified
         await todoModel.updateOne(
           { _id: todo._id },
           { $set: { notifiedBeforeDue: true } }
         );
-
-        console.log(`✅ Notification sent successfully`);
       }
-    } catch (error) {
-      console.error("❌ Error running reminder job:", error);
+    } catch (err) {
+      console.error("Reminder job error:", err);
     }
   });
 
-  console.log("✅ Cron job for todo reminders started");
+  // console.log(" Cron job for todo reminders started");
 }
 
 module.exports = notifyTodo;

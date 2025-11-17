@@ -26,7 +26,7 @@ const savePushToken = async (req, res) => {
 
 const getUserProfile = async (req, res) => {
   try {
-    console.log(req.user.userId, "user::::");
+    // console.log(req.user.userId, "user::::");
 
     const user = await userModel
       .findById(req.user.userId)
